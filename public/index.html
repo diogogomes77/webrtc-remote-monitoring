@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WebRTC relay & recorder</title>
+
+    <link href="/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="video-chat-lobby">
+      <h2 class="text">WebRTC relay & recorder</h2>
+      <img src="WebRTC_Logo.svg" />
+      <input id="roomName" type="text" placeholder="Room name" />
+      <div id="video-constraints">
+        aspectRatio:
+        <select id="aspectRatio">
+          <option value="default">Default</option>
+          <option value="1.77">16:9</option>
+          <option value="1.33">4:3</option>
+          <option value="2.35">21:9</option>
+          <option value="1.4">14:10</option>
+          <option value="1.9">19:10</option>
+        </select>
+
+        frameRate:
+        <select id="frameRate">
+          <option value="default">Default</option>
+          <option>30</option>
+          <option>25</option>
+          <option>15</option>
+          <option>5</option>
+        </select>
+
+        resolutions:
+        <select id="resolutions">
+          <option value="default">Default</option>
+          <option value="fit-screen">Fit Screen</option>
+          <option>4K</option>
+          <option>1080p</option>
+          <option>720p</option>
+        </select>
+
+        <button id="join">Join</button>
+      </div>
+    </div>
+    <div id="video-chat-room">
+      <h2 id="peer-title" class="text"></h2>
+      <video id="user-video"></video>
+      <video id="peer-video"></video>
+      <button id="stopBtn">Stop</button>
+    </div>
+    <div id="extras">
+      <a href="/saved" target="_blank">saved streams</a>
+    </div>
+  </body>
+  <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+  <script src="/chat.js"></script>
+</html>
