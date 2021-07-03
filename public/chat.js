@@ -50,6 +50,7 @@ joinButton.addEventListener('click', function () {
     alert('Please enter a room name');
   } else {
     roomName = roomInput.value;
+    console.log('emit join: ', roomName);
     socket.emit('join', roomName);
   }
 });
@@ -106,6 +107,17 @@ socket.on('joined', (supervisor) => {
         userVideo.play();
         peerTitle.textContent = `This is your stream (${roomName}) `;
       };
+
+      rtcPeerConnection = new RTCPeerConnection(iceServers);
+      rtcPeerConnection.onicecandidate = (event) => {
+        console.log('OnIceCandidateFunction');
+        if (event.candidate) {
+          //console.log('emit candidate: ', event.candidate);
+          console.log('emit candidate (OnIceCandidateFunction): ', roomName);
+          socket.emit('candidate', roomName, event.candidate);
+        }
+      };
+      rtcPeerConnection.ontrack = OnTrackFunction;
       console.log('emit ready: ', roomName);
       socket.emit('ready', roomName);
     },
@@ -140,12 +152,8 @@ socket.on('joined', (supervisor) => {
     */
 });
 
-socket.on('ready', function () {
+socket.on('ready', (supervisor) => {
   console.log('on ready', socket.id);
-
-  rtcPeerConnection = new RTCPeerConnection(iceServers);
-  rtcPeerConnection.onicecandidate = OnIceCandidateFunction;
-  rtcPeerConnection.ontrack = OnTrackFunction;
 
   const videotrack = userStream.getTracks()[0];
   rtcPeerConnection.addTrack(videotrack, userStream); // video track
@@ -157,7 +165,7 @@ socket.on('ready', function () {
 
       rtcPeerConnection.setLocalDescription(offer);
       console.log('emit offer');
-      socket.emit('offer', offer, roomName);
+      socket.emit('offer', offer, roomName, supervisor);
     })
     .catch((error) => {
       console.log(error);
@@ -167,7 +175,9 @@ socket.on('ready', function () {
 socket.on('candidate', function (candidate) {
   console.log('on candidate', { socketId: socket.id, candidate });
   let iceCandidate = new RTCIceCandidate(candidate);
+
   if (!rtcPeerConnection || !rtcPeerConnection.remoteDescription) {
+    console.log('push candidate: ', tempCandidates.length);
     tempCandidates.push(iceCandidate);
     return;
   }
@@ -180,19 +190,29 @@ socket.on('candidate', function (candidate) {
 socket.on('offer', function (offer, roomName, supervisor) {
   console.log('on offer supervisor? ', supervisor);
 
-  rtcPeerConnection = new RTCPeerConnection(iceServers);
+  /*rtcPeerConnection = new RTCPeerConnection(iceServers);
   rtcPeerConnection.onicecandidate = OnIceCandidateFunction;
-  rtcPeerConnection.ontrack = OnTrackFunction;
+  rtcPeerConnection.ontrack = (event) => {
+    console.log('OnTrackFunction supervisor');
+    peerVideo.srcObject = event.streams[0];
+    peerVideo.style.display = 'block';
+    userVideo.style.display = 'none';
+    peerVideo.onloadedmetadata = function (e) {
+      peerVideo.play();
+    };
+  };*/
+
   if (!supervisor) {
     const videotrack = userStream.getTracks()[0];
     rtcPeerConnection.addTrack(videotrack, userStream);
   } // video track
   rtcPeerConnection.setRemoteDescription(offer);
-  while (tempCandidates.length > 0) {
-    rtcPeerConnection.addIceCandidate(tempCandidates.pop());
-  }
+  //while (tempCandidates.length > 0) {
+  //  rtcPeerConnection.addIceCandidate(tempCandidates.pop());
+  //}
   rtcPeerConnection.onnegotiationneeded = (event) => {
     console.log('onnegotiationneeded supervisor? ', supervisor);
+    /*
     rtcPeerConnection
       .createOffer()
       .then((offer) => {
@@ -200,13 +220,14 @@ socket.on('offer', function (offer, roomName, supervisor) {
         socket.emit('offer', offer, roomName, supervisor);
       })
       .catch((err) => console.log('error1234: ', err));
+      */
   };
   rtcPeerConnection
     .createAnswer()
     .then((answer) => {
       rtcPeerConnection.setLocalDescription(answer);
       console.log('emit answer', roomName);
-      socket.emit('answer', answer, roomName);
+      socket.emit('answer', answer, roomName, supervisor);
       peerTitle.textContent = `This stream is from:  ${roomName}`;
     })
     .catch((error) => {
@@ -218,11 +239,11 @@ socket.on('answer', function (answer) {
   console.log('on answer');
   rtcPeerConnection.setRemoteDescription(answer);
   console.log('rtcPeerConnection: ', rtcPeerConnection);
-  if (tempCandidates.length > 0) {
-    tempCandidates.forEach((iceCandidate) => {
-      rtcPeerConnection.addIceCandidate(iceCandidate);
-    });
-  }
+  //if (tempCandidates.length > 0) {
+  //  tempCandidates.forEach((iceCandidate) => {
+  //    rtcPeerConnection.addIceCandidate(iceCandidate);
+  //  });
+  //}
 });
 
 function OnIceCandidateFunction(event) {
@@ -230,7 +251,7 @@ function OnIceCandidateFunction(event) {
   if (event.candidate) {
     //console.log('emit candidate: ', event.candidate);
     console.log('emit candidate (OnIceCandidateFunction): ', roomName);
-    socket.emit('candidate', event.candidate, roomName);
+    socket.emit('candidate', roomName, event.candidate);
   }
   //console.log('out of OnIceCandidateFunction...');
 }
