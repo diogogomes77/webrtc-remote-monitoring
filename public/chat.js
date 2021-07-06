@@ -73,6 +73,16 @@ stopBtn.onclick = (e) => {
     peerVideo.srcObject.getTracks().forEach((track) => track.stop());
 };
 
+const pauseBtn = document.getElementById('pauseBtn');
+pauseBtn.onclick = (e) => {
+  socket.emit('pause', roomName);
+};
+
+const resumeBtn = document.getElementById('resumeBtn');
+resumeBtn.onclick = (e) => {
+  socket.emit('resume', roomName);
+};
+
 socket.on('rooms', (rooms) => {
   // either with send()
   console.log('rooms: ', rooms);
