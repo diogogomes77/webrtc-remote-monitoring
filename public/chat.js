@@ -91,6 +91,20 @@ socket.on('joined', (supervisor) => {
   console.log(`on joined as supervisor? ${supervisor} from `, socket.id);
   divVideoChatLobby.style.display = 'none';
   divVideoChat.style.display = 'block';
+
+  rtcPeerConnection = new RTCPeerConnection(iceServers);
+  rtcPeerConnection.onicecandidate = (event) => {
+    console.log('OnIceCandidateFunction');
+    if (event.candidate) {
+      //console.log('emit candidate: ', event.candidate);
+      console.log('emit candidate (OnIceCandidateFunction): ', roomName);
+      socket.emit('candidate', roomName, event.candidate);
+    }
+  };
+  rtcPeerConnection.ontrack = OnTrackFunction;
+  rtcPeerConnection.onnegotiationneeded = (event) => {
+    console.log('onnegotiationneeded supervisor? ', supervisor);
+  };
   if (supervisor) {
     console.log('emit ready supervisor: ', roomName);
     socket.emit('ready', roomName, supervisor);
@@ -108,16 +122,6 @@ socket.on('joined', (supervisor) => {
         peerTitle.textContent = `This is your stream (${roomName}) `;
       };
 
-      rtcPeerConnection = new RTCPeerConnection(iceServers);
-      rtcPeerConnection.onicecandidate = (event) => {
-        console.log('OnIceCandidateFunction');
-        if (event.candidate) {
-          //console.log('emit candidate: ', event.candidate);
-          console.log('emit candidate (OnIceCandidateFunction): ', roomName);
-          socket.emit('candidate', roomName, event.candidate);
-        }
-      };
-      rtcPeerConnection.ontrack = OnTrackFunction;
       console.log('emit ready: ', roomName);
       socket.emit('ready', roomName);
     },
@@ -155,8 +159,10 @@ socket.on('joined', (supervisor) => {
 socket.on('ready', (supervisor) => {
   console.log('on ready', socket.id);
 
-  const videotrack = userStream.getTracks()[0];
-  rtcPeerConnection.addTrack(videotrack, userStream); // video track
+  if (!supervisor) {
+    const videotrack = userStream.getTracks()[0];
+    rtcPeerConnection.addTrack(videotrack, userStream); // video track
+  }
 
   rtcPeerConnection
     .createOffer()
@@ -210,18 +216,7 @@ socket.on('offer', function (offer, roomName, supervisor) {
   //while (tempCandidates.length > 0) {
   //  rtcPeerConnection.addIceCandidate(tempCandidates.pop());
   //}
-  rtcPeerConnection.onnegotiationneeded = (event) => {
-    console.log('onnegotiationneeded supervisor? ', supervisor);
-    /*
-    rtcPeerConnection
-      .createOffer()
-      .then((offer) => {
-        rtcPeerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer, roomName, supervisor);
-      })
-      .catch((err) => console.log('error1234: ', err));
-      */
-  };
+
   rtcPeerConnection
     .createAnswer()
     .then((answer) => {
