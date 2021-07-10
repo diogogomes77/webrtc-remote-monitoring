@@ -280,7 +280,9 @@ function invokeGetDisplayMedia(success, error) {
     videoConstraints.aspectRatio = aspectRatio.value;
   }
 
-  if (frameRate.value !== 'default') {
+  if (frameRate.value === 'default') {
+    videoConstraints.frameRate = 5;
+  } else {
     videoConstraints.frameRate = frameRate.value;
   }
 
