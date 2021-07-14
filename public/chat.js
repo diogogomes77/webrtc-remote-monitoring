@@ -12,16 +12,22 @@ const aspectRatio = document.getElementById('aspectRatio');
 const frameRate = document.getElementById('frameRate');
 const resolutions = document.getElementById('resolutions');
 
+const datachannelsend = document.getElementById('datachannelsend');
+const datachannelreceive = document.getElementById('datachannelreceive');
+const sendDataButton = document.getElementById('senddata');
+
 let roomName;
 
 let creator = false;
 let rtcPeerConnection;
+let sendChannel;
+let receiveChannel;
 
 let public = {
   iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
+    {urls: 'stun:stun.l.google.com:19302'},
+    {urls: 'stun:stun1.l.google.com:19302'},
+    {urls: 'stun:stun2.l.google.com:19302'},
   ],
 };
 
@@ -53,6 +59,19 @@ joinButton.addEventListener('click', function () {
     roomName = roomInput.value;
     console.log('emit join: ', roomName);
     socket.emit('join', roomName);
+  }
+});
+
+sendDataButton.addEventListener('click', function () {
+  if (datachannelsend.value == '') {
+    alert('Please enter something to send');
+  } else {
+    if (sendChannel) {
+      console.log('sending to datachannel: ', datachannelsend.value);
+      sendChannel.send(datachannelsend.value);
+    } else {
+      console.log('no datachannel available');
+    }
   }
 });
 
@@ -119,8 +138,33 @@ socket.on('joined', (supervisor) => {
   if (supervisor) {
     console.log('emit ready supervisor: ', roomName);
     socket.emit('ready', roomName, supervisor);
-    return;
+
+    // DATA CHANNEL
+    sendChannel = rtcPeerConnection.createDataChannel('desktop');
+    //return;
+  } else {
+    // DATA CHANNEL
+    sendChannel = rtcPeerConnection.createDataChannel('analytics');
   }
+
+  sendChannel.onopen = handleSendChannelStatusChange;
+  sendChannel.onclose = handleSendChannelStatusChange;
+
+  console.log('sendChannel created: ', sendChannel);
+  rtcPeerConnection.ondatachannel = (event) => {
+    // receive analytics from agent
+    // receive desktop from supervisor
+    console.log('[RELAY] ondatachannel ', event);
+    receiveChannel = event.channel;
+
+    receiveChannel.onmessage = handleReceiveMessage;
+    receiveChannel.onopen = handleReceiveChannelStatusChange;
+    receiveChannel.onclose = handleReceiveChannelStatusChange;
+
+    // recorderPc.createDataChannel(receiveChannel);
+  };
+
+  if (supervisor) return;
 
   invokeGetDisplayMedia(
     function (mediaStream) {
@@ -139,7 +183,7 @@ socket.on('joined', (supervisor) => {
     function (e) {
       alert('Cant access User Media');
       console.log(err.name + ': ' + err.message);
-    }
+    },
   );
 
   /*
@@ -190,7 +234,7 @@ socket.on('ready', (supervisor) => {
 });
 
 socket.on('candidate', function (candidate) {
-  console.log('on candidate', { socketId: socket.id, candidate });
+  console.log('on candidate', {socketId: socket.id, candidate});
   let iceCandidate = new RTCIceCandidate(candidate);
 
   if (!rtcPeerConnection || !rtcPeerConnection.remoteDescription) {
@@ -351,3 +395,22 @@ function invokeGetDisplayMedia(success, error) {
       .catch(error);
   }
 }
+
+const handleSendChannelStatusChange = (event) => {
+  if (sendChannel) {
+    var state = sendChannel.readyState;
+
+    if (state === 'open') {
+      console.log('sendChannel open');
+    } else {
+      console.log('sendChannel closed');
+    }
+  }
+};
+
+const handleReceiveChannelStatusChange = (event) => {
+  console.log('[RELAY] Receive channel status has changed  ', event);
+};
+const handleReceiveMessage = (event) => {
+  console.log('[RELAY] Receive channel event ', event);
+};
