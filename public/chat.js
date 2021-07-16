@@ -19,6 +19,11 @@ const datachannelsend = document.getElementById('datachannelsend');
 const datachannelreceive = document.getElementById('datachannelreceive');
 const sendDataButton = document.getElementById('senddata');
 
+const urlParams = new URLSearchParams(window.location.search);
+
+const agentId = urlParams.get('agent');
+console.log('agentId: ', agentId);
+
 let roomName;
 
 let creator = false;
@@ -37,31 +42,43 @@ const iceServers = {
 const tempCandidates = [];
 
 let userStream;
+
+const emitJoin = (roomName, supervisor) => {
+  const preSignedWriteUrl = '';
+  const webhookUrl = '';
+  const providerRecId = '';
+  console.log('emit join: ', {
+    roomName,
+    preSignedWriteUrl,
+    webhookUrl,
+    providerRecId,
+    supervisor,
+  });
+  socket.emit(
+    'join',
+    roomName,
+    preSignedWriteUrl,
+    webhookUrl,
+    providerRecId,
+    supervisor,
+  );
+};
+
+if (agentId) {
+  const supervisor = true;
+  emitJoin(agentId, supervisor);
+}
+
 roomInput.value = Math.floor(1000 + Math.random() * 9000);
+
 joinButton.addEventListener('click', function () {
   if (roomInput.value == '') {
     alert('Please enter a room name');
   } else {
     const supervisor = supervisorCheckbox.checked;
-    const preSignedWriteUrl = '';
-    const webhookUrl = '';
-    const providerRecId = '';
+
     roomName = roomInput.value;
-    console.log('emit join: ', {
-      roomName,
-      preSignedWriteUrl,
-      webhookUrl,
-      providerRecId,
-      supervisor,
-    });
-    socket.emit(
-      'join',
-      roomName,
-      preSignedWriteUrl,
-      webhookUrl,
-      providerRecId,
-      supervisor,
-    );
+    emitJoin(roomName, supervisor);
   }
 });
 
