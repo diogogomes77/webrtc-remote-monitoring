@@ -67,6 +67,7 @@ socket.on('connect', () => {
   console.log('socket io Successfully connected!');
   if (agentId) {
     const supervisor = true;
+    roomName = agentId;
     emitJoin(agentId, supervisor);
   }
 });
@@ -156,7 +157,7 @@ socket.on('joined', (supervisor) => {
     console.log('onnegotiationneeded supervisor? ', supervisor);
   };
   if (supervisor) {
-    console.log('emit ready supervisor: ', roomName);
+    console.log('emit ready supervisor: ', roomName, supervisor);
     socket.emit('ready', roomName, supervisor);
 
     // DATA CHANNEL
