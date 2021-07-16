@@ -233,7 +233,7 @@ socket.on('joined', (supervisor) => {
 });
 
 socket.on('ready', (supervisor) => {
-  console.log('on ready', socket.id);
+  console.log('on ready', {socket: socket.id, supervisor});
 
   if (!supervisor) {
     const videotrack = userStream.getTracks()[0];
@@ -246,7 +246,7 @@ socket.on('ready', (supervisor) => {
       //console.log('emit offer: ', offer);
 
       rtcPeerConnection.setLocalDescription(offer);
-      console.log('emit offer');
+      console.log('emit offer ', {supervisor});
       socket.emit('offer', offer, roomName, supervisor);
     })
     .catch((error) => {
@@ -258,6 +258,7 @@ socket.on('candidate', function (candidate) {
   console.log('on candidate', {socketId: socket.id, candidate});
   let iceCandidate = new RTCIceCandidate(candidate);
 
+  /*
   if (!rtcPeerConnection || !rtcPeerConnection.remoteDescription) {
     console.log('push candidate: ', tempCandidates.length);
     tempCandidates.push(iceCandidate);
@@ -266,6 +267,7 @@ socket.on('candidate', function (candidate) {
   while (tempCandidates.length > 0) {
     rtcPeerConnection.addIceCandidate(tempCandidates.pop());
   }
+  */
   rtcPeerConnection.addIceCandidate(iceCandidate);
 });
 
