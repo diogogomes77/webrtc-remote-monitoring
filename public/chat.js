@@ -1,5 +1,7 @@
 //const socket = io.connect('http://signaling_peer:5000');
-const socket = io();
+
+//const socket = io();
+const socket = null;
 //const socket = io.connect('http://localhost:5000');
 const divVideoChatLobby = document.getElementById('video-chat-lobby');
 const divVideoChat = document.getElementById('video-chat-room');
@@ -11,6 +13,7 @@ const roomInput = document.getElementById('roomName');
 const aspectRatio = document.getElementById('aspectRatio');
 const frameRate = document.getElementById('frameRate');
 const resolutions = document.getElementById('resolutions');
+const supervisorCheckbox = document.getElementById('supervisor');
 
 const datachannelsend = document.getElementById('datachannelsend');
 const datachannelreceive = document.getElementById('datachannelreceive');
@@ -23,30 +26,13 @@ let rtcPeerConnection;
 let sendChannel;
 let receiveChannel;
 
-let public = {
+const iceServers = {
   iceServers: [
     {urls: 'stun:stun.l.google.com:19302'},
     {urls: 'stun:stun1.l.google.com:19302'},
     {urls: 'stun:stun2.l.google.com:19302'},
   ],
 };
-
-let private = {
-  iceServers: [
-    {
-      urls: 'turn:coturn:3478',
-      username: 'admin',
-      credential: 'admin',
-    },
-    {
-      urls: 'stun:coturn:3478',
-      username: 'admin',
-      credential: 'admin',
-    },
-  ],
-};
-
-let iceServers = public;
 
 const tempCandidates = [];
 
@@ -56,9 +42,26 @@ joinButton.addEventListener('click', function () {
   if (roomInput.value == '') {
     alert('Please enter a room name');
   } else {
+    const supervisor = supervisorCheckbox.checked;
+    const preSignedWriteUrl = '';
+    const webhookUrl = '';
+    const providerRecId = '';
     roomName = roomInput.value;
-    console.log('emit join: ', roomName);
-    socket.emit('join', roomName);
+    console.log('emit join: ', {
+      roomName,
+      preSignedWriteUrl,
+      webhookUrl,
+      providerRecId,
+      supervisor,
+    });
+    socket.emit(
+      'join',
+      roomName,
+      preSignedWriteUrl,
+      webhookUrl,
+      providerRecId,
+      supervisor,
+    );
   }
 });
 
@@ -80,12 +83,10 @@ const stopBtn = document.getElementById('stopBtn');
 divVideoChat.style.display = 'none';
 
 stopBtn.onclick = (e) => {
-  //mediaRecorder.stop();
   roomInput.value = Math.floor(1000 + Math.random() * 9000);
   divVideoChatLobby.style.display = 'block';
   divVideoChat.style.display = 'none';
-  // peerVideo.style.display = 'none';
-  //  userVideo.style.display = 'none';
+
   socket.emit('stop', roomName);
   if (userVideo.srcObject)
     userVideo.srcObject.getTracks().forEach((track) => track.stop());
@@ -251,18 +252,6 @@ socket.on('candidate', function (candidate) {
 socket.on('offer', function (offer, roomName, supervisor) {
   console.log('on offer supervisor? ', supervisor);
 
-  /*rtcPeerConnection = new RTCPeerConnection(iceServers);
-  rtcPeerConnection.onicecandidate = OnIceCandidateFunction;
-  rtcPeerConnection.ontrack = (event) => {
-    console.log('OnTrackFunction supervisor');
-    peerVideo.srcObject = event.streams[0];
-    peerVideo.style.display = 'block';
-    userVideo.style.display = 'none';
-    peerVideo.onloadedmetadata = function (e) {
-      peerVideo.play();
-    };
-  };*/
-
   if (!supervisor) {
     const videotrack = userStream.getTracks()[0];
     rtcPeerConnection.addTrack(videotrack, userStream);
@@ -321,15 +310,7 @@ function OnTrackFunction(event) {
 function invokeGetDisplayMedia(success, error) {
   var videoConstraints = {};
 
-  if (aspectRatio.value !== 'default') {
-    videoConstraints.aspectRatio = aspectRatio.value;
-  }
-
-  if (frameRate.value === 'default') {
-    videoConstraints.frameRate = 5;
-  } else {
-    videoConstraints.frameRate = frameRate.value;
-  }
+  videoConstraints.frameRate = 5;
 
   if (resolutions.value !== 'default') {
     if (resolutions.value === 'fit-screen') {

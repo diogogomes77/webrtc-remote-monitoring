@@ -11,36 +11,11 @@
       <h2 class="text">WebRTC relay & recorder</h2>
       <img src="WebRTC_Logo.svg" />
       <input id="roomName" type="text" placeholder="Room name" />
-      <div id="video-constraints">
-        aspectRatio:
-        <select id="aspectRatio">
-          <option value="default">Default</option>
-          <option value="1.77">16:9</option>
-          <option value="1.33">4:3</option>
-          <option value="2.35">21:9</option>
-          <option value="1.4">14:10</option>
-          <option value="1.9">19:10</option>
-        </select>
 
-        frameRate:
-        <select id="frameRate">
-          <option value="default">Default</option>
-          <option>30</option>
-          <option>25</option>
-          <option>15</option>
-          <option>5</option>
-        </select>
-
-        resolutions:
-        <select id="resolutions">
-          <option value="default">Default</option>
-          <option value="fit-screen">Fit Screen</option>
-          <option>4K</option>
-          <option>1080p</option>
-          <option>720p</option>
-        </select>
-
-        <button id="join">Join</button>
+      <button id="join">Join</button>
+      <div id="supervisor-div">
+        Supervisor
+        <input type="checkbox" id="supervisor" />
       </div>
     </div>
     <div id="video-chat-room">
