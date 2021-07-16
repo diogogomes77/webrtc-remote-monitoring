@@ -63,11 +63,13 @@ const emitJoin = (roomName, supervisor) => {
     supervisor,
   );
 };
-
-if (agentId) {
-  const supervisor = true;
-  emitJoin(agentId, supervisor);
-}
+socket.on('connect', () => {
+  console.log('socket io Successfully connected!');
+  if (agentId) {
+    const supervisor = true;
+    emitJoin(agentId, supervisor);
+  }
+});
 
 roomInput.value = Math.floor(1000 + Math.random() * 9000);
 
