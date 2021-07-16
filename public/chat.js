@@ -311,49 +311,6 @@ function invokeGetDisplayMedia(success, error) {
   var videoConstraints = {};
 
   videoConstraints.frameRate = 5;
-
-  if (resolutions.value !== 'default') {
-    if (resolutions.value === 'fit-screen') {
-      videoConstraints.width = screen.width;
-      videoConstraints.height = screen.height;
-    }
-
-    if (resolutions.value === '4K') {
-      videoConstraints.width = 3840;
-      videoConstraints.height = 2160;
-    }
-
-    if (resolutions.value === '1080p') {
-      videoConstraints.width = 1920;
-      videoConstraints.height = 1080;
-    }
-
-    if (resolutions.value === '720p') {
-      videoConstraints.width = 1280;
-      videoConstraints.height = 720;
-    }
-
-    if (resolutions.value === '480p') {
-      videoConstraints.width = 853;
-      videoConstraints.height = 480;
-    }
-
-    if (resolutions.value === '360p') {
-      videoConstraints.width = 640;
-      videoConstraints.height = 360;
-    }
-
-    /*
-      videoConstraints.width = {
-          exact: videoConstraints.width
-      };
-
-      videoConstraints.height = {
-          exact: videoConstraints.height
-      };
-      */
-  }
-
   videoConstraints.cursor = 'always';
 
   if (!Object.keys(videoConstraints).length) {
