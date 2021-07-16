@@ -1,7 +1,7 @@
 //const socket = io.connect('http://signaling_peer:5000');
 
-//const socket = io();
-const socket = null;
+const socket = io();
+//const socket = null;
 //const socket = io.connect('http://localhost:5000');
 const divVideoChatLobby = document.getElementById('video-chat-lobby');
 const divVideoChat = document.getElementById('video-chat-room');
