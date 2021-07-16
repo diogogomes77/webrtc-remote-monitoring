@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+  client:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./public:/usr/share/nginx/html
+    restart: unless-stopped
+
+volumes:
+  saved:
+    external: true
+
+    # docker volume create --driver local --opt type=none --opt device=$(pwd)/saved --opt o=bind saved
